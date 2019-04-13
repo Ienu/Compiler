@@ -1,0 +1,9 @@
+0	TYPE	int
+1	TYPE	void
+2	KEYWORD	return
+3	KEYWORD	main
+4	SYMBOL	(
+5	SYMBOL	)
+6	SYMBOL	{
+7	SYMBOL	}
+8	SYMBOL	;
