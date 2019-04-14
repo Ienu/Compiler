@@ -1,12 +1,13 @@
 /**
  * File: main.cpp
  * Author: Wenyu
- * Version 0.2
+ * Version 0.3
  * Env: GCC 6.3.0 GNU Make 3.82.90
  * Function:
  *  v0.0[04/12/2019][Wenyu]: init and test read .c file
  *  v0.1[04/13/2019][Wenyu]: read .c file by line and split into tokens
  *  v0.2[04/14/2019][Wenyu]: correct errors of split symbols
+ *  v0.3[04/14/2019][Wenyu]: use function and scan line to split words
  */
 
 #include <iostream>
@@ -16,6 +17,44 @@
 #include <vector>
 
 using namespace std;
+
+bool _is_letter(char c){
+    return (c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
+}
+
+bool _is_digit(char c){
+    return (c >= '0' && c <= '9');
+}
+
+bool _is_operator(char c){
+    char ops[] = "+-*/%!<>=&|~^";
+    for(size_t i = 0; i < 13; ++i){
+        if(ops[i] == c){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool _is_bound(char c){
+    char ops[] = "()[]{};,";
+    for(size_t i = 0; i < 8; ++i){
+        if(ops[i] == c){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool _is_separator(char c){
+    char ops[] = " \t\n";
+    for(size_t i = 0; i < 3; ++i){
+        if(ops[i] == c){
+            return true;
+        }
+    }
+    return false;
+}
 
 typedef struct{
     int idx;
@@ -53,8 +92,6 @@ int main(int argc, char* argv[]){
         line_idx++;
     }
     std::cout << "================================ read keywords ================================" << std::endl;
-    std::vector<Token> _keywords;
-    std::vector<Token> _types;
     std::vector<Token> _symbols;
 
     std::ifstream source_keywords("keywords");
@@ -62,54 +99,64 @@ int main(int argc, char* argv[]){
         int idx;
         std::string str_type, str_word;
         source_keywords >> idx >> str_type >> str_word;
-        if(str_type == "TYPE"){
-            _types.push_back({idx, str_type, str_word});
-        }
-        else if(str_type == "KEYWROD"){
-            _keywords.push_back({idx, str_type, str_word});
-        }
-        else if(str_type == "SYMBOL"){
-            _symbols.push_back({idx, str_type, str_word});
-        }
+        _symbols.push_back({idx, str_type, str_word});
         std::cout << idx << ": " << str_type << " --> " << str_word << std::endl;
     }
     source_keywords.close();
     std::cout << "================================ split tokens =================================" << std::endl;
     std::vector<Token> token;
     for(i = 0; i < src_line.size(); ++i){
+        // read one line
         string line = src_line[i];
         std::cout << "# Line str: " << line << std::endl;
+
+        char str[255] = "";
+        int c_idx = 0;
         for(j = 0; j < line.size(); ++j){
-            for(int k = 0; k < _symbols.size(); ++k){
-                int n_match = 0;
-                for(int l = 0; l < _symbols[k].VALUE.size(); ++l){
-                    if(line[j + l] == _symbols[k].VALUE[l]){
-                        n_match++;
+            if(true == _is_separator(line[j])){
+                continue;
+            }
+            if(true == _is_bound(line[j])){
+                token.push_back({0, "BOUND", string(1, line[j])});
+                continue;
+            }
+            if(true == _is_operator(line[j])){
+                if(j + 1 < line.size()){
+                    if(line[j + 1] == '='){
+                        char cop[3] = "@=";
+                        cop[0] = line[j];
+                        token.push_back({0, "OPERATOR", string(cop)});
+                        j++;
+                        continue;
                     }
                 }
-                if(n_match == _symbols[k].VALUE.size()){
-                    if(j == 0){
-                        token.push_back({0, _symbols[k].VALUE, _symbols[k].VALUE});
-                        line = line.substr(n_match);
+                token.push_back({0, "OPERATOR", string(1, line[j])});
+                continue;
+            }
+            if(true == _is_letter(line[j]) || line[j] == '_'){
+                if(j + 1 < line.size()){
+                    int k = j + 1;
+                    while(k < line.size() && (_is_letter(line[k]) || line[k] == '_' || _is_digit(line[k]))){
+                        k++;
                     }
-                    else{
-                        string head = line.substr(0, j);
-                        token.push_back({0, head, head});
-                        token.push_back({0, _symbols[k].VALUE, _symbols[k].VALUE});
-                        line = line.substr(j + n_match);
+                    char c_id[255] = "";
+                    for(int l = 0; l < k - j; ++l){
+                        c_id[l] = line[j + l];
                     }
-                    j = 0;
-                    std::cout << "\tsub_str: " << line << std::endl;
+                    token.push_back({0, "IDENTIFIER", c_id});
+                    j = k - 1;
+                    continue;
                 }
+                
             }
         }
-        if(line.size() > 0){
+        /*if(line.size() > 0){
             token.push_back({0, line, line});
-        }
+        }*/
     }
     std::cout << "-------------------------------------------------------------------------------" << std::endl;
     for(i = 0; i < token.size(); ++i){
-        std::cout << token[i].VALUE << std::endl;
+        std::cout << "[ " << token[i].TYPE << ", " << token[i].VALUE << " ]" << std::endl;
     }
     std::cout << "-------------------------------------------------------------------------------" << std::endl;
     source_stream.close();
