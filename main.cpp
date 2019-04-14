@@ -114,10 +114,12 @@ int main(int argc, char* argv[]){
         int c_idx = 0;
         for(j = 0; j < line.size(); ++j){
             if(true == _is_separator(line[j])){
+                //std::cout << "[sep]" << std::ends;
                 continue;
             }
             if(true == _is_bound(line[j])){
                 token.push_back({0, "BOUND", string(1, line[j])});
+                std::cout << "[bound]" << std::ends;
                 continue;
             }
             if(true == _is_operator(line[j])){
@@ -126,34 +128,107 @@ int main(int argc, char* argv[]){
                         char cop[3] = "@=";
                         cop[0] = line[j];
                         token.push_back({0, "OPERATOR", string(cop)});
+                        std::cout << "[D-op]" << std::ends;
+                        j++;
+                        continue;
+                    }
+                    if(line[j] == '+' && line[j + 1] == '+'){
+                        token.push_back({0, "OPERATOR", "++"});
+                        std::cout << "[D-op]" << std::ends;
+                        j++;
+                        continue;
+                    }
+                    if(line[j] == '-' && line[j + 1] == '-'){
+                        token.push_back({0, "OPERATOR", "--"});
+                        std::cout << "[D-op]" << std::ends;
                         j++;
                         continue;
                     }
                 }
                 token.push_back({0, "OPERATOR", string(1, line[j])});
+                std::cout << "[op]" << std::ends;
                 continue;
             }
             if(true == _is_letter(line[j]) || line[j] == '_'){
                 if(j + 1 < line.size()){
                     int k = j + 1;
-                    while(k < line.size() && (_is_letter(line[k]) || line[k] == '_' || _is_digit(line[k]))){
-                        k++;
+                    while(k < line.size()){
+                        if(_is_letter(line[k]) || line[k] == '_' || _is_digit(line[k])){
+                            k++;
+                        }
+                        else{
+                            break;
+                        }
                     }
                     char c_id[255] = "";
-                    for(int l = 0; l < k - j; ++l){
+                    int l;
+                    for(l = 0; l < k - j; ++l){
                         c_id[l] = line[j + l];
                     }
+                    c_id[l] = '\0';
                     token.push_back({0, "IDENTIFIER", c_id});
+                    std::cout << "[id]" << std::ends;
                     j = k - 1;
                     continue;
+                }                
+            }
+            if(true == _is_digit(line[j])){
+                int k = j + 1;
+                bool b_dot = false;
+                while(k < line.size()){
+                    if(_is_digit(line[k])){
+                        k++;
+                    }
+                    else if(!b_dot && line[k] == '.'){
+                        k++;
+                        b_dot = true;
+                    }
+                    else{
+                        break;
+                    }
                 }
-                
+                char c_number[255] = "";
+                int l;
+                for(l = 0; l < k - j; ++l){
+                    c_number[l] = line[j + l];
+                }
+                c_number[l] = '\0';
+                token.push_back({0, "CONSTANT", c_number});
+                std::cout << "[number]" << std::ends;
+                j = k - 1;
+                continue;
+            }
+            if(line[j] == '\"'){
+                int k = j + 1;
+                while(k < line.size()){
+                    if(line[k] == '\"' && line[k - 1] != '\\'){
+                        break;
+                    }
+                    k++;
+                }
+                // suppose to be found
+                char c_str[255] = "";
+                int l;
+                for(l = 0; l < k - j - 1; ++l){
+                    c_str[l] = line[j + l + 1];
+                }
+                c_str[l] = '\0';
+                token.push_back({0, "CONSTANT", c_str});
+                std::cout << "[string]" << std::ends;
+                j = k;
+                continue;
+            }
+            if(line[j] == '\''){
+                // suppose correct grammer
+                token.push_back({0, "CONSTANT", string(1, line[j + 1])});
+                std::cout << "[char]" << std::ends;
+                j += 2;
+                continue;
             }
         }
-        /*if(line.size() > 0){
-            token.push_back({0, line, line});
-        }*/
+        std::cout << std::endl << std::endl;
     }
+    
     std::cout << "-------------------------------------------------------------------------------" << std::endl;
     for(i = 0; i < token.size(); ++i){
         std::cout << "[ " << token[i].TYPE << ", " << token[i].VALUE << " ]" << std::endl;
