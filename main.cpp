@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+//#define WORDS_ANALYSIS
+
 using namespace std;
 
 string __keywords[] = {
@@ -124,18 +126,23 @@ int main(int argc, char* argv[]){
     for(i = 0; i < src_line.size(); ++i){
         // read one line
         string line = src_line[i];
+        #ifdef WORDS_ANALYSIS
         std::cout << "# Line str: " << line << std::endl;
-
+        #endif
         char str[255] = "";
         int c_idx = 0;
         for(j = 0; j < line.size(); ++j){
             if(true == _is_separator(line[j])){
+                #ifdef WORDS_ANALYSIS
                 //std::cout << "[sep]" << std::ends;
+                #endif
                 continue;
             }
             if(true == _is_bound(line[j])){
                 token.push_back({0, "BOUND", string(1, line[j])});
+                #ifdef WORDS_ANALYSIS
                 std::cout << "[bound]" << std::ends;
+                #endif
                 continue;
             }
             if(true == _is_operator(line[j])){
@@ -144,25 +151,33 @@ int main(int argc, char* argv[]){
                         char cop[3] = "@=";
                         cop[0] = line[j];
                         token.push_back({0, "OPERATOR", string(cop)});
+                        #ifdef WORDS_ANALYSIS
                         std::cout << "[D-op]" << std::ends;
+                        #endif
                         j++;
                         continue;
                     }
                     if(line[j] == '+' && line[j + 1] == '+'){
                         token.push_back({0, "OPERATOR", "++"});
+                        #ifdef WORDS_ANALYSIS
                         std::cout << "[D-op]" << std::ends;
+                        #endif
                         j++;
                         continue;
                     }
                     if(line[j] == '-' && line[j + 1] == '-'){
                         token.push_back({0, "OPERATOR", "--"});
+                        #ifdef WORDS_ANALYSIS
                         std::cout << "[D-op]" << std::ends;
+                        #endif
                         j++;
                         continue;
                     }
                 }
                 token.push_back({0, "OPERATOR", string(1, line[j])});
+                #ifdef WORDS_ANALYSIS
                 std::cout << "[op]" << std::ends;
+                #endif
                 continue;
             }
             if(true == _is_letter(line[j]) || line[j] == '_'){
@@ -184,11 +199,15 @@ int main(int argc, char* argv[]){
                     c_id[l] = '\0';
                     if(_is_keyword(c_id)){
                         token.push_back({0, "KEYWORD", c_id});
+                        #ifdef WORDS_ANALYSIS
                         std::cout << "[key]" << std::ends;
+                        #endif
                     }
                     else{
                         token.push_back({0, "IDENTIFIER", c_id});
+                        #ifdef WORDS_ANALYSIS
                         std::cout << "[id]" << std::ends;
+                        #endif
                     }
                     j = k - 1;
                     continue;
@@ -216,7 +235,9 @@ int main(int argc, char* argv[]){
                 }
                 c_number[l] = '\0';
                 token.push_back({0, "CONSTANT", c_number});
+                #ifdef WORDS_ANALYSIS
                 std::cout << "[number]" << std::ends;
+                #endif
                 j = k - 1;
                 continue;
             }
@@ -236,24 +257,32 @@ int main(int argc, char* argv[]){
                 }
                 c_str[l] = '\0';
                 token.push_back({0, "CONSTANT", c_str});
+                #ifdef WORDS_ANALYSIS
                 std::cout << "[string]" << std::ends;
+                #endif
                 j = k;
                 continue;
             }
             if(line[j] == '\''){
                 // suppose correct grammer
                 token.push_back({0, "CONSTANT", string(1, line[j + 1])});
+                #ifdef WORDS_ANALYSIS
                 std::cout << "[char]" << std::ends;
+                #endif
                 j += 2;
                 continue;
             }
         }
+        #ifdef WORDS_ANALYSIS
         std::cout << std::endl << std::endl;
+        #endif
     }
     std::cout << "-------------------------------------------------------------------------------" << std::endl;
     for(i = 0; i < token.size(); ++i){
         std::cout << "[ " << token[i].TYPE << ", " << token[i].VALUE << " ]" << std::endl;
     }
+    std::cout << "============================== grammer analysis ===============================" << std::endl;
+
     std::cout << "-------------------------------------------------------------------------------" << std::endl;
     source_stream.close();
     return 0;
