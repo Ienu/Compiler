@@ -18,6 +18,13 @@
 
 using namespace std;
 
+string __keywords[] = {
+    "auto", "break", "case", "char", "const", "continue", "default", 
+    "do", "double", "else", "enum", "extern", "float", "for", "goto", "if", "int", 
+    "long", "register", "return", "short", "signed", "sizeof", "static", "struct", 
+    "switch", "typedef", "union", "unsigned", "void", "volatile", "while"
+};
+
 bool _is_letter(char c){
     return (c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
 }
@@ -50,6 +57,15 @@ bool _is_separator(char c){
     char ops[] = " \t\n";
     for(size_t i = 0; i < 3; ++i){
         if(ops[i] == c){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool _is_keyword(string str){
+    for(int i = 0; i < 32; ++i){
+        if(str == __keywords[i]){
             return true;
         }
     }
@@ -166,8 +182,14 @@ int main(int argc, char* argv[]){
                         c_id[l] = line[j + l];
                     }
                     c_id[l] = '\0';
-                    token.push_back({0, "IDENTIFIER", c_id});
-                    std::cout << "[id]" << std::ends;
+                    if(_is_keyword(c_id)){
+                        token.push_back({0, "KEYWORD", c_id});
+                        std::cout << "[key]" << std::ends;
+                    }
+                    else{
+                        token.push_back({0, "IDENTIFIER", c_id});
+                        std::cout << "[id]" << std::ends;
+                    }
                     j = k - 1;
                     continue;
                 }                
@@ -228,7 +250,6 @@ int main(int argc, char* argv[]){
         }
         std::cout << std::endl << std::endl;
     }
-    
     std::cout << "-------------------------------------------------------------------------------" << std::endl;
     for(i = 0; i < token.size(); ++i){
         std::cout << "[ " << token[i].TYPE << ", " << token[i].VALUE << " ]" << std::endl;
