@@ -1,13 +1,14 @@
 /**
  * File: main.cpp
  * Author: Wenyu
- * Version 0.3
- * Env: GCC 6.3.0 GNU Make 3.82.90
+ * Version 0.4
+ * Env: GCC 8.2.0 GNU Make 3.82.90
  * Function:
  *  v0.0[04/12/2019][Wenyu]: init and test read .c file
  *  v0.1[04/13/2019][Wenyu]: read .c file by line and split into tokens
  *  v0.2[04/14/2019][Wenyu]: correct errors of split symbols
  *  v0.3[04/14/2019][Wenyu]: use function and scan line to split words
+ *	v0.4[09/25/2019][Wenyu]: add block and sentence segmentation
  */
 
 #include <iostream>
@@ -80,6 +81,33 @@ typedef struct{
     std::string VALUE;
 }Token;
 
+typedef struct {
+	int idx;
+	std::vector<Token> TOKENS;
+}Block;
+
+void _show_block(Block b) {
+	std::cout << "----BLOCK\t";
+	for (int i = 0; i < b.TOKENS.size(); ++i) {
+		std::cout << b.TOKENS[i].VALUE << " ";
+	}
+	std::cout << std::endl;
+}
+
+typedef struct {
+	int idx;
+	std::vector<Token> TOKENS;
+}Sentence;
+
+void _show_sentence(Sentence s) {
+	std::cout << "--------SENTENCE\t";
+	for (int i = 0; i < s.TOKENS.size(); ++i) {
+		std::cout << s.TOKENS[i].VALUE << " ";
+	}
+	std::cout << std::endl;
+}
+
+
 int main(int argc, char* argv[]){
     std::cout << "################################### Compiler ##################################" << std::endl;
     std::cout << "================================ read arguments ===============================" << std::endl;
@@ -103,9 +131,11 @@ int main(int argc, char* argv[]){
     while(!source_stream.eof()){
         char str_line[256];
         source_stream.getline(str_line, 255, '\n');
+		// read each line
         std::cout << "Line: " << line_idx << ": " << str_line << std::endl;
 
         std::string str(str_line);
+		// put lines into vector<string>
         src_line.push_back(str);
         line_idx++;
     }
@@ -173,6 +203,38 @@ int main(int argc, char* argv[]){
                         j++;
                         continue;
                     }
+					if (line[j] == '&' && line[j + 1] == '&') {
+						token.push_back({ 0, "OPERATOR", "&&" });
+#ifdef WORDS_ANALYSIS
+						std::cout << "[D-op]" << std::ends;
+#endif
+						j++;
+						continue;
+					}
+					if (line[j] == '|' && line[j + 1] == '|') {
+						token.push_back({ 0, "OPERATOR", "||" });
+#ifdef WORDS_ANALYSIS
+						std::cout << "[D-op]" << std::ends;
+#endif
+						j++;
+						continue;
+					}
+					if (line[j] == '>' && line[j + 1] == '>') {
+						token.push_back({ 0, "OPERATOR", ">>" });
+#ifdef WORDS_ANALYSIS
+						std::cout << "[D-op]" << std::ends;
+#endif
+						j++;
+						continue;
+					}
+					if (line[j] == '<' && line[j + 1] == '<') {
+						token.push_back({ 0, "OPERATOR", "<<" });
+#ifdef WORDS_ANALYSIS
+						std::cout << "[D-op]" << std::ends;
+#endif
+						j++;
+						continue;
+					}
                 }
                 token.push_back({0, "OPERATOR", string(1, line[j])});
                 #ifdef WORDS_ANALYSIS
@@ -279,10 +341,36 @@ int main(int argc, char* argv[]){
     }
     std::cout << "-------------------------------------------------------------------------------" << std::endl;
     for(i = 0; i < token.size(); ++i){
-        std::cout << "[ " << token[i].TYPE << ", " << token[i].VALUE << " ]" << std::endl;
+        std::cout << token[i].TYPE << ", \t" << token[i].VALUE << std::endl;
     }
     std::cout << "============================== grammer analysis ===============================" << std::endl;
-
+	std::vector<Block> block;
+	for (i = 0; i < token.size(); ++i) {
+		// find block
+		Block b;
+		if (token[i].TYPE == "BOUND" && token[i].VALUE == "{") {
+			i++;
+			while (token[i].TYPE != "BOUND" || token[i].VALUE != "}") {
+				b.TOKENS.push_back(token[i]);
+				i++;
+			}
+			i--;
+		}
+		if (b.TOKENS.size() > 0) {
+			block.push_back(b);
+		}
+	}
+	for (i = 0; i < block.size(); ++i) {
+		_show_block(block[i]);
+		for (j = 0; j < block[i].TOKENS.size(); ++j) {
+			Sentence s;
+			while (block[i].TOKENS[j].VALUE != ";" && j < block[i].TOKENS.size()) {
+				s.TOKENS.push_back(block[i].TOKENS[j]);
+				j++;
+			}
+			_show_sentence(s);
+		}
+	}
     std::cout << "-------------------------------------------------------------------------------" << std::endl;
     source_stream.close();
     return 0;
