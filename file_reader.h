@@ -2,7 +2,7 @@
  * File: file_reader.h
  * Env: GCC 8.2.0 GNU Make 3.82.90
  * Function:
- *  v0.0[10/06/2019][Wenyu]: read .c file into lines
+ *  v0.1[10/07/2019][Wenyu]: add notes
  */
 #ifndef FILE_READER_H
 #define FILE_READER_H
@@ -15,6 +15,7 @@
 
 using namespace std;
 
+// display one-line separator with title centered
 void _disp_split(string title = ""){
     int i, num = 80 - title.size() - 2;
     for(i = 0; i < num / 2; ++i){
@@ -32,6 +33,7 @@ void _disp_split(string title = ""){
     cout << endl;
 }
 
+// read command line arguments and obtain the file name
 char* arg_reader(int argc, char* argv[]){
     _disp_split("read arguments");
 
@@ -52,6 +54,7 @@ char* arg_reader(int argc, char* argv[]){
     return argv[1];
 }
 
+// read the source file into lines
 vector<string> file_reader(char* file_name){
     vector<string> lines_src;
     ifstream source_stream(file_name);

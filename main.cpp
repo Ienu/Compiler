@@ -2,7 +2,7 @@
  * File: main.cpp
  * Env: GCC 8.2.0 GNU Make 3.82.90
  * Function:
- *  v0.5[10/06/2019][Wenyu]: add function judge and split functions into headers
+ *  v0.6[10/07/2019][Wenyu]: add function params spliter
  */
 
 #include <iostream>
@@ -73,8 +73,9 @@ typedef struct{
 }function;
 
 void _show_func(function f){
-	cout << "function: " << f.type << " " << f.name << " (";
+	cout << "function: " << f.type << " " << f.name << " (" << endl;
 	for(size_t i = 0; i < f.params.size(); ++i){
+		cout << "params: ";
 		_show_var(f.params[i]);
 	}
 	cout << ") {";
@@ -119,13 +120,40 @@ int main(int argc, char* argv[]){
 							if(tokens[i].VALUE == "("){
 								i++;
 								while(i < tokens.size()){
-									// TODO: judge params
-									// func.params
-									//
-									if(tokens[i].VALUE == ")"){
-										break;
+									variable v;
+									bool b_v_type = false;
+									if(tokens[i].TYPE == "KEYWORD"){
+										for(size_t j = 0; j < 8; ++j){
+											if(key_type[j] == tokens[i].VALUE){
+												v.TYPE = key_type[j];
+												b_v_type = true;
+												i++;
+												break;
+											}
+										}
+									}
+									if(b_v_type){
+										if(tokens[i].TYPE == "IDENTIFIER"){
+											v.NAME = tokens[i].VALUE;
+										}
+										else{
+											cerr << "COMPILE ERROR: " << "argument error" << endl;
+										}
+									}
+									else{
+										if(tokens[i].VALUE == ")"){
+											break;
+										}
+										else{
+											cerr << "COMPILE ERROR: " << "argument error" << endl;
+										}
 									}
 									i++;
+									if(tokens[i].VALUE == ","){
+										i++;
+										func.params.push_back(v);
+										continue;
+									}
 								}
 								i++;
 								if(tokens[i].VALUE == "{"){

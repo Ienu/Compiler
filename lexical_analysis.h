@@ -2,7 +2,7 @@
  * File: lexical_analysis.h
  * Env: GCC 8.2.0 GNU Make 3.82.90
  * Function:
- *  v0.0[10/06/2019][Wenyu]: split lines into tokens
+ *  v0.1[10/07/2019][Wenyu]: add notes
  */
 #ifndef LEXICAL_ANALYSIS_H
 #define LEXICAL_ANALYSIS_H
